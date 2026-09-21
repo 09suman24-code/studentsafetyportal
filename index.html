@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Safety Portal</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>🛡️ Student Safety Portal</h1>
+        <p>Your Safety, Our Priority</p>
+    </header>
+
+    <main>
+
+        <section class="welcome">
+            <h2>Welcome, Student! 👋</h2>
+            <p>
+                Get quick access to emergency help and safety services.
+            </p>
+              
+              <!-- Cards -->
+                <div class="card-container"> 
+                <!-- Registration Card --> 
+                <a href="register.html" class="card-link">
+                 <div class="card"> 
+              <div class="icon">📝</div> 
+                <h3>Student Registration</h3> 
+                <p> Register your details securely in the portal.</p> 
+            </div> 
+            </a>
+
+            <button class="sos-button" onclick="activateSOS()">
+    🆘 Emergency SOS
+</button>
+
+<div id="sosPanel" class="sos-panel">
+    <h2>🚨 Emergency Mode</h2>
+
+    <p>
+        Emergency mode is active. Choose an action:
+    </p>
+
+    <button onclick="getLocation()">
+        📍 Share My Location
+    </button>
+
+    <button onclick="callEmergency()">
+        📞 Call Emergency Service
+    </button>
+
+    <button onclick="closeSOS()">
+        ❌ Cancel
+    </button>
+</div>
+        </section>
+
+        <section class="features">
+
+           <div class="card">
+    <h3>📍 My Location</h3>
+    <p>Get your current location on the map.</p>
+
+    <button onclick="getLocation()">
+        📍 Show My Location
+    </button>
+<!-- location -->
+    <p id="location"></p>
+
+    <iframe
+        id="map"
+        width="100%"
+        height="250"
+        style="border:0; margin-top:15px; border-radius:10px;"
+        loading="lazy">
+    </iframe>
+</div>
+
+           <!-- Emergency Contacts -->
+        <div class="card">
+            <h3>📞 Emergency Contacts</h3>
+
+            <p>Add an emergency contact:</p>
+
+            <input
+                type="text"
+                id="contactName"
+                placeholder="Contact Name"
+            >
+
+            <input
+                type="tel"
+                id="contactNumber"
+                placeholder="Phone Number"
+            >
+
+            <button onclick="addContact()">
+                Add Contact
+            </button>
+
+            <div id="contactList"></div>
+        </div>
+          
+
+<!-- Nearby Help -->
+<div class="card">
+    <h3>🏥 Nearby Help</h3>
+
+    <p>Find nearby hospitals and emergency services.</p>
+
+    <button onclick="window.open('https://www.google.com/maps/search/hospitals+near+me', '_blank')">
+        🏥 Find Hospital
+    </button>
+
+    <button onclick="window.open('https://www.google.com/maps/search/police+station+near+me', '_blank')">
+        🚓 Find Police Station
+    </button>
+
+    <button onclick="window.location.href='tel:108'">
+        🚑 Call Ambulance
+    </button>
+
+    <button onclick="window.location.href='tel:101'">
+        🚒 Call Fire Service
+    </button>
+
+    <button onclick="window.location.href='tel:112'">
+        🚨 Call Emergency 112
+    </button>
+</div>
+
+          
+            <div class="card">
+    <h3>📝 Report Incident</h3>
+
+    <select id="incidentType">
+        <option value="">Select Incident Type</option>
+        <option value="Harassment">Harassment</option>
+        <option value="Lost Item">Lost Item</option>
+        <option value="Medical Emergency">Medical Emergency</option>
+        <option value="Unsafe Area">Unsafe Area</option>
+        <option value="Other">Other</option>
+    </select>
+
+    <input
+        type="text"
+        id="incidentLocation"
+        placeholder="Incident Location">
+
+    <textarea
+        id="incidentDescription"
+        placeholder="Describe the incident..."></textarea>
+
+    <button onclick="submitIncident()">
+        📤 Submit Report
+    </button>
+
+    <p id="reportMessage"></p>
+</div>
+<!-- Feedback -->
+<div class="card">
+    <h3>💬 Feedback</h3>
+
+    <p>Tell us about your experience.</p>
+
+    <textarea
+        id="feedback"
+        placeholder="Write your feedback..."
+    ></textarea>
+
+    <button onclick="submitFeedback()">
+        Submit Feedback
+    </button>
+</div>
+        <!-- Safety Information -->
+        <div class="card">
+            <h3>🛡️ Safety Tips</h3>
+
+            <p>• Always inform someone before going somewhere.</p>
+            <p>• Keep emergency contacts saved.</p>
+            <p>• Avoid isolated places at night.</p>
+            <p>• Use the SOS button during an emergency.</p>
+        </div>
+
+    </section>
+
+    </main>
+
+    <footer>
+        <p>© 2026 Student Safety Portal</p>
+    </footer>
+    
+    <script src="script.js"></script>
+
+</body>
+</html>
