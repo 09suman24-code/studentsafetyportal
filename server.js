@@ -4,7 +4,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -13,12 +13,10 @@ app.use(express.urlencoded({ extended: true }));
 // Serve all HTML, CSS and JavaScript files
 app.use(express.static(__dirname));
 
-
 // Home page
 app.get("/", (req, res) => {
     res.sendFile(__dirname + "/index.html");
 });
-
 
 // Register page
 app.get("/register.html", (req, res) => {
@@ -26,26 +24,29 @@ app.get("/register.html", (req, res) => {
 });
 
 
-// MySQL
-const db = mysql.createConnection({
+// ===============================
+// MYSQL CONNECTION POOL
+// ===============================
+
+const db = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
+    database: process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
-
-db.connect((err) => {
-
+db.getConnection((err, connection) => {
     if (err) {
-
         console.log("MySQL connection failed:", err.message);
+        return;
+    }
 
-    } else {
+    console.log("MySQL connected successfully!");
 
-        console.log("MySQL connected successfully!");
-
-        const createTable = `
+    const createTable = `
         CREATE TABLE IF NOT EXISTS students (
             id INT AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
@@ -54,28 +55,24 @@ db.connect((err) => {
             phone VARCHAR(15),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-        `;
+    `;
 
-        db.query(createTable, (err) => {
+    connection.query(createTable, (err) => {
+        connection.release();
 
-            if (err) {
-
-                console.log(
-                    "Table creation failed:",
-                    err.message
-                );
-
-            } else {
-
-                console.log("Students table ready!");
-
-            }
-        });
-    }
+        if (err) {
+            console.log("Table creation failed:", err.message);
+        } else {
+            console.log("Students table ready!");
+        }
+    });
 });
 
 
-// Registration
+// ===============================
+// REGISTRATION
+// ===============================
+
 app.post("/register", (req, res) => {
 
     const {
@@ -85,14 +82,11 @@ app.post("/register", (req, res) => {
         phone
     } = req.body;
 
-
     if (!name || !email || !password) {
-
         return res
             .status(400)
             .send("Name, email and password are required");
     }
-
 
     const sql = `
         INSERT INTO students
@@ -100,14 +94,12 @@ app.post("/register", (req, res) => {
         VALUES (?, ?, ?, ?)
     `;
 
-
     db.query(
         sql,
         [name, email, password, phone],
         (err, result) => {
 
             if (err) {
-
                 console.log(
                     "Registration error:",
                     err.message
@@ -121,7 +113,6 @@ app.post("/register", (req, res) => {
                     );
             }
 
-
             res.send(
                 "Student registered successfully!"
             );
@@ -129,7 +120,11 @@ app.post("/register", (req, res) => {
     );
 });
 
-// Report Incident
+
+// ===============================
+// REPORT INCIDENT
+// ===============================
+
 app.post("/report-incident", (req, res) => {
 
     const {
@@ -138,8 +133,14 @@ app.post("/report-incident", (req, res) => {
         incidentDescription
     } = req.body;
 
-    if (!incidentType || !incidentLocation || !incidentDescription) {
-        return res.status(400).send("All incident details are required");
+    if (
+        !incidentType ||
+        !incidentLocation ||
+        !incidentDescription
+    ) {
+        return res
+            .status(400)
+            .send("All incident details are required");
     }
 
     const sql = `
@@ -150,19 +151,36 @@ app.post("/report-incident", (req, res) => {
 
     db.query(
         sql,
-        [incidentType, incidentLocation, incidentDescription],
+        [
+            incidentType,
+            incidentLocation,
+            incidentDescription
+        ],
         (err, result) => {
 
             if (err) {
-                console.log("Incident save error:", err.message);
-                return res.status(500).send("Incident could not be saved");
+                console.log(
+                    "Incident save error:",
+                    err.message
+                );
+
+                return res
+                    .status(500)
+                    .send("Incident could not be saved");
             }
 
-            res.send("Incident reported successfully!");
+            res.send(
+                "Incident reported successfully!"
+            );
         }
     );
 });
-//feedback
+
+
+// ===============================
+// FEEDBACK
+// ===============================
+
 app.post("/feedback", (req, res) => {
 
     const { feedback, rating } = req.body;
@@ -170,11 +188,14 @@ app.post("/feedback", (req, res) => {
     const studentId = 1;
 
     if (!feedback || !rating) {
-        return res.status(400).send("Feedback and rating are required.");
+        return res
+            .status(400)
+            .send("Feedback and rating are required.");
     }
 
     const sql = `
-        INSERT INTO feedback (student_id, feedback, rating)
+        INSERT INTO feedback
+        (student_id, feedback, rating)
         VALUES (?, ?, ?)
     `;
 
@@ -184,15 +205,28 @@ app.post("/feedback", (req, res) => {
         (err, result) => {
 
             if (err) {
-                console.log("Feedback save error:", err.message);
-                return res.status(500).send("Feedback could not be saved.");
+                console.log(
+                    "Feedback save error:",
+                    err.message
+                );
+
+                return res
+                    .status(500)
+                    .send("Feedback could not be saved.");
             }
 
-            res.send("Feedback submitted successfully!");
+            res.send(
+                "Feedback submitted successfully!"
+            );
         }
     );
 });
-// Get Feedback
+
+
+// ===============================
+// GET FEEDBACK
+// ===============================
+
 app.get("/feedback", (req, res) => {
 
     const sql = `
@@ -204,7 +238,11 @@ app.get("/feedback", (req, res) => {
     db.query(sql, (err, results) => {
 
         if (err) {
-            console.log("Feedback fetch error:", err.message);
+            console.log(
+                "Feedback fetch error:",
+                err.message
+            );
+
             return res.status(500).json({
                 error: "Could not fetch feedback"
             });
@@ -214,15 +252,19 @@ app.get("/feedback", (req, res) => {
     });
 });
 
-// Start Server
-// Save Emergency Contact
-// Save Emergency Contact
+
+// ===============================
+// SAVE EMERGENCY CONTACT
+// ===============================
+
 app.post("/add-contact", (req, res) => {
 
     const { name, number } = req.body;
 
     if (!name || !number) {
-        return res.status(400).send("Name and number are required");
+        return res
+            .status(400)
+            .send("Name and number are required");
     }
 
     const studentId = 1;
@@ -239,15 +281,28 @@ app.post("/add-contact", (req, res) => {
         (err, result) => {
 
             if (err) {
-                console.log("Contact save error:", err.message);
-                return res.status(500).send("Contact could not be saved");
+                console.log(
+                    "Contact save error:",
+                    err.message
+                );
+
+                return res
+                    .status(500)
+                    .send("Contact could not be saved");
             }
 
-            res.send("Emergency contact saved successfully!");
+            res.send(
+                "Emergency contact saved successfully!"
+            );
         }
     );
 });
-// Get Emergency Contacts
+
+
+// ===============================
+// GET EMERGENCY CONTACTS
+// ===============================
+
 app.get("/contacts", (req, res) => {
 
     const studentId = 1;
@@ -258,23 +313,35 @@ app.get("/contacts", (req, res) => {
         WHERE student_id = ?
     `;
 
-    db.query(sql, [studentId], (err, results) => {
+    db.query(
+        sql,
+        [studentId],
+        (err, results) => {
 
-        if (err) {
-            console.log("Contact fetch error:", err.message);
-            return res.status(500).json({
-                error: "Could not fetch contacts"
-            });
+            if (err) {
+                console.log(
+                    "Contact fetch error:",
+                    err.message
+                );
+
+                return res.status(500).json({
+                    error: "Could not fetch contacts"
+                });
+            }
+
+            res.json(results);
         }
-
-        res.json(results);
-    });
+    );
 });
+
+
+// ===============================
+// START SERVER
+// ===============================
+
 app.listen(PORT, () => {
     console.log("=================================");
     console.log("SERVER STARTED");
-    console.log("http://localhost:3000");
-    console.log("Register page:");
-    console.log("http://localhost:3000/register.html");
+    console.log("Port:", PORT);
     console.log("=================================");
 });
